@@ -4,7 +4,7 @@ from vowpalwabbit import Workspace
 
 class XGBRanker:
     def __init__(self, base_path="models"):
-        self.model = joblib.load(f"{base_path}/xgb_ranker.pkl")
+        self.model = joblib.load(f"{base_path}/ranker.pkl")
         self.pre = joblib.load(f"{base_path}/preprocess.pkl")
         self.meta = json.load(open(f"{base_path}/feature_meta.json"))
 
