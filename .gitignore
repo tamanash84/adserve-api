@@ -4,7 +4,7 @@
 /data/Instacart/**
 /data/pos/purchases/**
 /data/pos/wal/**
-/data/parquets/
+/data/parquets/**
 
 # Keep the bandit directory itself
 !/data/bandit/training/
@@ -17,6 +17,8 @@
 !/data/pos/purchases/.gitkeep
 !/data/pos/wal/
 !/data/pos/wal/.gitkeep
+!/data/parquets/
+!/data/parquets/.gitkeep
 
 /model/vw/**
 /model/xgboost/**
