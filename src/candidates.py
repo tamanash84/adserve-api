@@ -1,5 +1,4 @@
 import duckdb
-from typing import Dict, List
 from datetime import datetime
 from ann_query import load_ann, query_similar
 import pandas as pd
@@ -80,7 +79,7 @@ def get_trending_items(
 
 
 def enhance_with_ann(trending_df: pd.DataFrame,  
-                     seed_k: int = 10, ann_k: int = 4) -> Dict[int, List[int]]:
+                     seed_k: int = 10, ann_k: int = 4) -> dict[int, list[int]]:
 
     # Ensure stable order: assume trending_df already sorted, but keep input order per store
     # If not sorted, sort by your score column before calling this function.    
@@ -124,7 +123,7 @@ def enhance_with_ann(trending_df: pd.DataFrame,
 def build_store_candidates(t_now: datetime,
                            top_trend: int = 10,  
                            seed_k: int = 10, 
-                           ann_k: int = 4) -> Dict[int, List[int]]:
+                           ann_k: int = 4) -> dict[int, list[int]]:
     
     df = get_trending_items(t_now)
     x = enhance_with_ann(df)

@@ -4,7 +4,7 @@ from bandit_policy import VwAdfXGBPolicy
 import ast
 
 
-dates = ["2026-01-10", "2026-01-11", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15"]
+dates = ["2026-01-10", "2026-01-11"]
 
 out = []
 
@@ -127,7 +127,63 @@ def doubly_robust(
 
     return np.mean(dr_values)
 
-for i in range(2, len(dates)):
+def safe_literal_eval(x, default=None):
+    if default is None:
+        default = []
+
+    if x is None:
+        return default
+
+    if isinstance(x, (list, tuple, dict)):
+        return x
+
+    try:
+        return ast.literal_eval(str(x))
+    except Exception:
+        return default
+
+
+def doubly_robust2(logged_events: pd.DataFrame, new_policy) -> float:
+    dr_values = []
+
+    required = {"comment", "chosen_index", "reward", "propensity", "expected_rewards"}
+    if not required.issubset(logged_events.columns):
+        return 0.0
+
+    for row in logged_events.itertuples(index=False):
+        adf = safe_literal_eval(getattr(row, "comment", None), default=[])
+        er = getattr(row, "expected_rewards", None)
+
+        if not adf or not er.any():
+            continue
+
+        chosen_idx = int(getattr(row, "chosen_index"))
+        reward = float(getattr(row, "reward") or 0.0)
+        p0 = float(getattr(row, "propensity") or 0.0)
+
+        if p0 <= 0:
+            continue
+
+        p1_vec = np.asarray(new_policy.probs_given_adf(adf), dtype=float)
+        er = np.asarray(er, dtype=float)
+
+        if chosen_idx >= len(p1_vec) or chosen_idx >= len(er):
+            continue
+
+        m = min(len(p1_vec), len(er))
+        p1_vec = p1_vec[:m]
+        er = er[:m]
+
+        p1 = float(p1_vec[chosen_idx])
+        q_logged = float(er[chosen_idx])
+        q_new = float(np.dot(p1_vec, er))
+
+        dr = q_new + (p1 / p0) * (reward - q_logged)
+        dr_values.append(dr)
+
+    return float(np.mean(dr_values)) if dr_values else 0.0
+
+for i in range(1, len(dates)):
     
     prev_log_path = str(Paths.TRAIN_DAILY_PATTERN).replace("*", dates[i-1])
     prev_policy_path = Paths.VW_POLICY / f"vw_policy_{dates[i-1]}.bin"
@@ -147,7 +203,7 @@ for i in range(2, len(dates)):
         today_policy,
     )
     
-    dr_ctr = doubly_robust(
+    dr_ctr = doubly_robust2(
         yesterday_logs,
         today_policy,
     )

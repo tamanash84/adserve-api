@@ -1,7 +1,7 @@
 import requests
 import urllib.parse as urlparse
 from datetime import datetime, timedelta, UTC, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 import html
 from urllib.parse import parse_qs, urlencode, urlunparse
 import math
@@ -57,7 +57,7 @@ class EventsFetcher:
         return d
 
     @staticmethod
-    def _safe_get(obj: Any, path: List[Any], default: Optional[Any] = None) -> Any:
+    def _safe_get(obj: Any, path: list[Any], default: Optional[Any] = None) -> Any:
         cur = obj
         for key in path:
             try:
@@ -122,7 +122,7 @@ class EventsFetcher:
             return u
 
     @staticmethod
-    def _better_of(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
+    def _better_of(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
         """
         When two records collide on a dedupe key, prefer the one with more useful info:
         - Has venue name
@@ -182,7 +182,7 @@ class EventsFetcher:
         except Exception:
             return u  # fallback: return best-effort
 
-    def _extract(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract(self, event: dict[str, Any]) -> dict[str, Any]:
         # Core
         event_id = event.get("id")
         name = event.get("name")
@@ -262,7 +262,7 @@ class EventsFetcher:
         limit: int = 50,
         paginate: bool = False,
         suppress_variants: bool = True
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Deduplicated, relevant events.
         - suppress_variants=True removes VIP/Packages/Comfort Seats variants.
@@ -280,7 +280,7 @@ class EventsFetcher:
         }
 
         # Store candidates before dedupe
-        candidates: List[Dict[str, Any]] = []
+        candidates: list[dict[str, Any]] = []
 
         page = 0
         total_pages = 1
@@ -319,11 +319,11 @@ class EventsFetcher:
             candidates = filtered
 
         # ---------- build keys for dedupe ----------
-        dedup_id: Dict[str, Dict[str, Any]] = {}
-        dedup_url: Dict[str, Dict[str, Any]] = {}
-        dedup_semantic: Dict[str, Dict[str, Any]] = {}
+        dedup_id: dict[str, dict[str, Any]] = {}
+        dedup_url: dict[str, dict[str, Any]] = {}
+        dedup_semantic: dict[str, dict[str, Any]] = {}
 
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
 
         for e in candidates:
             if e.get('dateTime_utc') is None:
@@ -496,7 +496,7 @@ def extract_event_features(events, now_utc: datetime):
 
 def get_event_features(now_utc: datetime, 
                        lat: float, 
-                       lon: float) -> Dict[str, float]:
+                       lon: float) -> dict[str, float]:
     fetcher = EventsFetcher(api_key='ouTfABGLAuJcyXUuABaKHNdAQxZgQ41k', src_lat_lon=(lat, lon))    
     # Single page (fast)
     events = fetcher.get_events(city="Amsterdam", days_ahead=1, limit=250, paginate=True, suppress_variants=True)

@@ -1,6 +1,6 @@
 import os
 from datetime import date, datetime, timedelta
-from typing import Dict, List, Any
+from typing import Any
 import numpy as np
 import pandas as pd
 import json
@@ -10,8 +10,8 @@ from config import Paths
 import glob
 
 
-def score_ensemble(xgb_ensemble: List[xgb.Booster], 
-                   xgb_context: List[Dict[str, Any]]):
+def score_ensemble(xgb_ensemble: list[xgb.Booster], 
+                   xgb_context: list[dict[str, Any]]):
     """
     Returns:
       mean:  (K,) mean across models
@@ -112,13 +112,13 @@ def build_features(df: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
 
 
 def build_model(
-    run_day: date | None = None,
+    run_date: date | None = None,
     lookback_days: int = 1,
     M: int = 10,
     seed: int = 42,
     min_prop: float = 0.01,
     num_boost_round: int = 300,
-    ) -> List[str]:
+    ) -> list[str]:
     """
     Nightly training job for a bootstrapped XGBoost ensemble.
 
@@ -132,18 +132,25 @@ def build_model(
       - None (raises on failure)
     """
   
-    if run_day is None:
-        run_day = date.today()
+    if run_date is None:
+        run_date = date.today()
 
-    start_day = (run_day - timedelta(days=lookback_days)).isoformat()
-    end_day = run_day.isoformat()
+    start_date = (run_date - timedelta(days=lookback_days)).isoformat()
+    end_date = run_date.isoformat()
 
-    print(f"Training lookback window ={lookback_days} days, run_day={run_day.isoformat()}, M={M}")
+    print(f"Training lookback window ={lookback_days} days, run_day={run_date.isoformat()}, M={M}")
     
     glob_path = Paths.TRAIN_DAILY_PATTERN.as_posix()
+    
+    daily_files = list(Paths.BANDIT_TRAIN.glob("date=*/train.parquet"))
 
-    df = load_window_parquet(glob_path, start_day, end_day)
+    if not daily_files:
+        raise FileNotFoundError(
+            "No historical daily training files available."
+    )
 
+    df = load_window_parquet(glob_path, start_date, end_date)
+    
     df["xgb_prob_mean"] =  df["xgb_prob_mean"].fillna(0.)
     if len(df) == 0:
         raise ValueError("No training data found for the given window")
@@ -190,12 +197,12 @@ def build_model(
         model = xgb.train(params, dtrain, num_boost_round=num_boost_round)
         # (Optional but good) also set directly:
         model.feature_names = feature_names
-        out_path = out_dir / f"xgb_ens_{end_day}_{i:02d}.json"
+        out_path = out_dir / f"xgb_ens_{end_date}_{i:02d}.json"
         model.save_model(out_path)
         out_paths.append(out_path)
         print(f"[{i+1:02d}/{M}] saved {out_path}")
 
-    print(f"Done. Trained {M} models for {end_day} in {out_dir}")
+    print(f"Done. Trained {M} models for {end_date} in {out_dir}")
     return out_paths
 
 
@@ -266,8 +273,8 @@ def concat_hourlies_to_day(ts: datetime) -> str:
 
     return out_path
 
-def load_ensemble(model_paths: List[str]) -> List[xgb.Booster]:
-    xgb_ensemble: List[xgb.Booster] = []
+def load_ensemble(model_paths: list[str]) -> list[xgb.Booster]:
+    xgb_ensemble: list[xgb.Booster] = []
     for p in model_paths:
         bst = xgb.Booster()
         bst.load_model(p)

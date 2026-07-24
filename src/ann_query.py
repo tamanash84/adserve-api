@@ -1,8 +1,5 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
-
 import numpy as np
 
 
@@ -10,7 +7,7 @@ import numpy as np
 class ANN:
     index: object
     ids: np.ndarray                 # shape (N,)
-    id_to_row: Dict[int, int]       # product_id -> row index
+    id_to_row: dict[int, int]       # product_id -> row index
     X_norm: np.memmap               # normalized embeddings (memmap), shape (N, D)
 
 
@@ -41,7 +38,7 @@ def query_similar(
     product_id: int,
     *,
     topk: int = 10,
-) -> List[Tuple[int, float]]:
+) -> list[tuple[int, float]]:
     """
     Return topk similar items for product_id as [(neighbor_id, cosine_similarity), ...].
     Cosine similarity is inner product because vectors are normalized.
@@ -55,7 +52,7 @@ def query_similar(
     # search topk+1 and drop self if it appears
     D, I = ann.index.search(q, topk + 1)
 
-    out: List[Tuple[int, float]] = []
+    out: list[tuple[int, float]] = []
     for score, idx in zip(D[0], I[0]):
         if idx < 0:
             continue

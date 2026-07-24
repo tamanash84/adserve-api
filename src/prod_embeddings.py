@@ -8,7 +8,6 @@ from scipy.sparse import coo_matrix
 from matplotlib.colors import ListedColormap, to_hex
 import matplotlib.pyplot as plt
 from collections import defaultdict
-from typing import List, Set, Dict
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -285,7 +284,7 @@ communities = nx.algorithms.community.louvain_communities(
 
 def community_stats_louvain(
     G: nx.Graph,
-    communities: List[Set],
+    communities: list[set],
     weight_key: str = "weight",
     top_k: int = 5,
     compute_avg_clustering: bool = True,
@@ -443,7 +442,7 @@ comm_stats, node_to_comm = community_stats_louvain(
     compute_betweenness=False  # set True if communities are small; it's slower
 )
 
-def add_purity(comm_stats: pd.DataFrame, node_to_comm: Dict, products_df: pd.DataFrame,
+def add_purity(comm_stats: pd.DataFrame, node_to_comm: dict, products_df: pd.DataFrame,
                id_col="product_id", attrs=("aisle", "department")):
     df = products_df[[id_col, *attrs]].copy()
     df["community_id"] = df[id_col].map(node_to_comm)

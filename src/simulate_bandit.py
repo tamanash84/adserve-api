@@ -5,6 +5,8 @@ import sys
 import uuid
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
+
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional
@@ -15,7 +17,6 @@ from bandit_learn import vw_learn_from_delta_parquet
 from candidates import build_store_candidates 
 from context import get_ctx_per_store, get_ctx_per_product 
 from config import Paths
-import pyarrow.parquet as pq
 
 # Adjust import path to your project
 from bandit_engine import BanditEngine
@@ -30,24 +31,24 @@ REWARD_MATCH_WINDOW = 3600
 # -----------------------
 # Simulation calendar
 # -----------------------
-SIM_START_DATE = "2026-01-10"   # inclusive
-SIM_END_DATE   = "2026-01-17"   # exclusive (recommended)
+SIM_START_DATE = "2026-01-10"      # inclusive
+SIM_END_DATE   = "2026-01-17"      # exclusive (recommended)
 
-ACTIVE_START_HOUR = 8         # 06:00
-ACTIVE_END_HOUR   = 14        # 22:00 (end boundary)
+ACTIVE_START_HOUR = 8          # 06:00
+ACTIVE_END_HOUR   = 14         # 22:00 (end boundary)
 NIGHTLY_TRAIN_HOUR = 1         # 01:00
 
-TRAIN_LOOKBACK_DAYS = 7      # if you want rolling training window
+TRAIN_LOOKBACK_DAYS = 7        # if you want rolling training window
 
 # If you simulate impressions per store, list them here.
 # If your existing script already discovers stores elsewhere, keep that logic instead.
 STORE_IDS = [1,2]  # e.g. [1,2,3] or None to infer opportunistically
 
-IMPRESSION_EVERY_SEC = 300        # 5 minutes
+IMPRESSION_EVERY_SEC = 300         # 5 minutes
 #DELTA_SECONDS = 3600              # expires window (for log field)
 #USE_XGB = False                   # as requested
 
-SLEEP_PER_POS_ROW = 0.0           # slow down if desired
+SLEEP_PER_POS_ROW = 0.0            # slow down if desired
 BATCH_SIZE = 4096
 SKIP_ROWS = 10_000                 # pyarrow batch size
 MAX_POS_ROWS: Optional[int] = 50_000  # cap purchases
@@ -143,7 +144,7 @@ def cleanup_wal_files(
 
         matched_files = []
         for pat in patterns:
-            matched_files.extend(root.rglob(pat))   # ✅ RECURSIVE
+            matched_files.extend(root.rglob(pat))   #RECURSIVE
 
         if not matched_files:
             print(f"[cleanup] no files in {root}")
@@ -376,7 +377,6 @@ def run_simulation():
                                 "xgb_prob_mean": float(probs_mean[served_idx]),
                                 "xgb_prob_var": float(probs_var[served_idx]),
                                 "comment": out["comment"],    
-                                #"reward": None
                             } 
                     
                     record = {**record, **xgb_context[served_idx]}                    

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any
 import os, json
 import threading
 import numpy as np
@@ -31,7 +31,7 @@ class BanditEngine:
         self.rng = np.random.default_rng(seed)
     
     @staticmethod   
-    def log_wal(out_dir: Path, record: Dict[str, Any], prefix: str, fsync:bool = False):   
+    def log_wal(out_dir: Path, record: dict[str, Any], prefix: str, fsync:bool = False):   
         os.makedirs(out_dir, exist_ok=True)
         ts = datetime.fromisoformat(record["timestamp"])        
         date_str = ts.date().isoformat()
@@ -43,9 +43,9 @@ class BanditEngine:
             if fsync:
                 os.fsync(f.fileno())   
 
-    def recommend(self, shared_context: Dict[str, Any], 
-                  action_context: List[Dict[str, Any]],
-                  candidates: List[int]) -> Dict[str, Any]:
+    def recommend(self, shared_context: dict[str, Any], 
+                  action_context: list[dict[str, Any]],
+                  candidates: list[int]) -> dict[str, Any]:
         
         with self._model_lock:
             policy = self.random_policy if self.rng.random() < self.p_random else self.policy

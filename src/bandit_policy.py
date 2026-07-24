@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, Dict, List, Any, Optional
+from typing import Iterable, Any, Optional
 import numpy as np
 import random
 import json
@@ -27,10 +27,10 @@ class BanditPolicy(ABC):
     @abstractmethod
     def select_action(
         self,
-        shared_context: Dict[str, Any],
-        action_context: List[Dict[str, Any]],
-        candidates: List[int],
-        ) -> Dict[str, Any]:
+        shared_context: dict[str, Any],
+        action_context: list[dict[str, Any]],
+        candidates: list[int],
+        ) -> dict[str, Any]:
         pass
 
     def update_models(self, new_ensemble: Any) -> None:
@@ -83,7 +83,7 @@ class VwAdfXGBPolicy(BanditPolicy):
         return lines
     
     @staticmethod
-    def _feats_from_dict(features: Dict[str, Any]) -> str:    
+    def _feats_from_dict(features: dict[str, Any]) -> str:    
         
         """Action is a flat dict with at least product_id and optional numeric fields.   
        
@@ -93,7 +93,7 @@ class VwAdfXGBPolicy(BanditPolicy):
             xgb_features = json.load(f)
         cat_keys = xgb_features["categorical"]
         
-        toks: List[str] = []
+        toks: list[str] = []
         for k in cat_keys:
             v = features.get(k)
             if v is not None:
@@ -113,16 +113,16 @@ class VwAdfXGBPolicy(BanditPolicy):
     
     @staticmethod
     def _build_adf(
-        shared_feats: Optional[Dict[str, Any]],
-        actions: Iterable[Dict[str, Any]]
-    ) -> List[str]:
+        shared_feats: Optional[dict[str, Any]],
+        actions: Iterable[dict[str, Any]]
+    ) -> list[str]:
         shared_adf = "shared |s"
         if shared_feats:
             sf = VwAdfXGBPolicy._feats_from_dict(shared_feats)
             if sf:
                 shared_adf += " " + sf
 
-        lines: List[str] = [shared_adf]
+        lines: list[str] = [shared_adf]
 
         for a in actions:
             af = VwAdfXGBPolicy._feats_from_dict(a)
